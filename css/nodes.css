@@ -59,6 +59,36 @@
     padding-left: 0;
 }
 
+.board > .box:nth-child(3n+4) {
+    clear: left;
+    margin-left: 0;
+}
+
+.board > .box:nth-child(n+4) {
+    margin-top: -1px;
+}
+
+.board > .box:first-child {
+    border-bottom-left-radius: 0;
+}
+
+.board > .box:nth-child(3) {
+    border-top-right-radius: 4px !important;
+}
+
+.board > .box:nth-last-child(3) {
+    border-bottom-left-radius: 4px !important;
+}
+
+.board > .box:last-child {
+    border-top-right-radius: 0;
+}
+
+/* Decorations */
+.board {
+    margin: 20px;
+}
+
 /* The animation code */
 @keyframes visited {
     0% {
