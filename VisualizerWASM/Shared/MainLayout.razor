@@ -1,0 +1,20 @@
+﻿@using System.Runtime.InteropServices
+@inherits LayoutComponentBase
+
+<div class="sidebar">
+    <NavMenu />
+</div>
+
+<div class="main">
+
+    <p style="display: none">Env: @Environment</p>
+
+    <div class="content px-4">
+        @Body
+    </div>
+</div>
+@code{
+    string Environment = RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER")) // was "WEBASSEMBLY"
+    ? "WebAssembly"
+    : "Server";
+}

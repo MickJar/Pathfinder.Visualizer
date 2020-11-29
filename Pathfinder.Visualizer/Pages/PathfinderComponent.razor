@@ -1,0 +1,104 @@
+﻿@page "/"
+@using Pathfinder.Visualizer.Data
+@inject Pathfinder.Visualizer.Data.PathfinderService pathFinderService
+@inject BoardState boardState
+@implements IDisposable
+@using System.Timers
+
+<div class="container">
+    <h3>Pathfinder</h3>
+
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="inputGroup-sizing-default">Size of Grid</span>
+        </div>
+        <input @bind="size" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" type=number placeholder="size" />
+        <button @onclick="refreshBoard" class="btn btn-secondary">Refresh Board</button>
+        <button @onclick="findPath" class="btn btn-primary">Find Path</button>
+        <button @onclick="toggleClicked" class=@(boardState.mouseDown ? buttonToggled : buttonUntoggled)>Toggle wall buiding</button>
+    </div>
+
+
+    <div class="board jumbotron">
+
+        @if (board == null)
+        {
+            <p><em>Loading board...</em></p>
+        }
+        else
+        {
+            int counter = 1;
+            @for (int i = 0; i < rank; i += 1)
+            {
+                <div class="row no-gutters justify-content-center">
+
+                    @for (int j = 0; (j < rank) && (j < board.Length); j++)
+                    {
+                        <div class="">
+                            <Node State="@board[i, j]" id="counter"></Node>
+                        </div>
+                        counter++;
+                    }
+                </div>
+            }
+        }
+
+
+        @path
+        Start: @start
+        End: @end
+    </div>
+</div>
+@code {
+    private State[,] board;
+    private int size = 4;
+    private int start;
+    private int end;
+    private string buttonToggled = "btn btn-dark";
+    private string buttonUntoggled = "btn btn-outline-dark";
+    private Timer timer;
+
+    private int rank;
+    private int colSize;
+
+    String path = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        boardState.OnChange += updateState;
+        await refreshBoard();
+    }
+
+    private async Task refreshBoard()
+    {
+        board = await pathFinderService.GetBoard(size);
+        rank = board.GetLength(1);
+        colSize = 12 / rank;
+        boardState.clear();
+    }
+
+    private async Task findPath()
+    {
+        var result = await pathFinderService.FindPath(board, boardState);
+        boardState.setPath(result.Select(x => (int)x).ToArray());
+        path = string.Join(",", result);
+        boardState.SelectStart(boardState.StartNode);
+    }
+
+    public void updateState()
+    {
+        start = boardState.StartNode;
+        end = boardState.EndNode;
+    }
+
+    public void Dispose()
+    {
+        boardState.OnChange -= updateState;
+    }
+
+    private void toggleClicked()
+    {
+        boardState.toggleClicked();
+    }
+}

@@ -1,0 +1,100 @@
+﻿@using Pathfinder.Visualizer.Data
+@implements IDisposable
+@inject BoardState boardState
+
+<div @onclick="selectNode" @oncontextmenu="selectEndNode" @onmouseover="blockNode" class="box text-center">
+    <div class="@classes"></div>
+</div>
+
+@code {
+    private string baseClasses = "innerBox ";
+    private string classes = "";
+
+    [Parameter]
+    public State state { get; set; }
+
+    [Parameter]
+    public int id { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+
+    protected override void OnInitialized()
+    {
+        boardState.OnChange += updateSelf;
+        boardState.OnChange += StateHasChanged;
+        updateClass();
+    }
+
+    private void updateSelf()
+    {
+        if (boardState.StartNode == id) {
+            state = State.Start;
+        } else if (boardState.EndNode == id)
+        {
+            state = State.End;
+        } else if (boardState.path.Contains(id))
+        {
+            state = State.ShortestPath;
+        } else if (boardState.BlockedNodes.Contains(id))
+        {
+            state = State.Blocked;
+        }
+        else if (boardState.CurrentNode == id)
+        {
+            state = State.Current;
+        }
+        else if (boardState.VisitedNodes.Contains(id))
+        {
+            state = State.Visited;
+        } else
+        {
+            state = State.Unvisited;
+        }
+        updateClass();
+    }
+
+    private void updateClass()
+    {
+        Console.WriteLine($"id {id} has state {state}");
+        classes = baseClasses + state.ToString().ToLower();
+        StateHasChanged();
+    }
+
+
+    private void selectNode()
+    {
+        if (boardState.BlockedNodes.Contains(id))
+        {
+            boardState.unblockNode(id);
+        } else
+        {
+            boardState.SelectStart(id);
+            this.state = State.Start;
+        }
+        updateClass();
+    }
+
+    private void selectEndNode()
+    {
+        boardState.SelectEnd(id);
+        this.state = State.End;
+        updateClass();
+    }
+
+    private void blockNode()
+    {
+        if (boardState.mouseDown && this.state == State.Unvisited)
+        {
+            this.state = State.Blocked;
+            boardState.blockNode(id);
+            updateClass();
+        }
+    }
+
+    public void Dispose()
+    {
+        boardState.OnChange -= StateHasChanged;
+        boardState.OnChange -= updateSelf;
+    }
+}
